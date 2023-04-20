@@ -101,6 +101,23 @@ public class Command {
         return 1;
     }
 
+    private static int addWhitelist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrException();
+        switch (cleanType) {
+            case ITEMS:
+                Definition.config.getItemsClean().addWhitelist(context.getArgument("name", String.class));
+                break;
+            case ANIMALS:
+                Definition.config.getAnimalClean().addWhitelist(context.getArgument("name", String.class));
+                break;
+            case MONSTERS:
+                Definition.config.getMonsterClean().addWhitelist(context.getArgument("name", String.class));
+        }
+        ConfigHandler.onChange();
+        player.sendMessage(new StringTextComponent("已经添加到白名单"), Util.NIL_UUID);
+        return 1;
+    }
+
     private static int delWhitelist(CommandContext<CommandSource> context, CleanType cleanType) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
@@ -120,6 +137,23 @@ public class Command {
         } else {
             player.sendMessage(new StringTextComponent("从白名单移除失败"), Util.NIL_UUID);
         }
+        return 1;
+    }
+
+    private static int delWhitelist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrException();
+        switch (cleanType) {
+            case ITEMS:
+                Definition.config.getItemsClean().delWhitelist(context.getArgument("name", String.class));
+                break;
+            case ANIMALS:
+                Definition.config.getAnimalClean().delWhitelist(context.getArgument("name", String.class));
+                break;
+            case MONSTERS:
+                Definition.config.getMonsterClean().delWhitelist(context.getArgument("name", String.class));
+        }
+        ConfigHandler.onChange();
+        player.sendMessage(new StringTextComponent("已经从白名单移除"), Util.NIL_UUID);
         return 1;
     }
 
@@ -145,6 +179,23 @@ public class Command {
         return 1;
     }
 
+    private static int addBlacklist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrException();
+        switch (cleanType) {
+            case ITEMS:
+                Definition.config.getItemsClean().addBlacklist(context.getArgument("name", String.class));
+                break;
+            case ANIMALS:
+                Definition.config.getAnimalClean().addBlacklist(context.getArgument("name", String.class));
+                break;
+            case MONSTERS:
+                Definition.config.getMonsterClean().addBlacklist(context.getArgument("name", String.class));
+        }
+        ConfigHandler.onChange();
+        player.sendMessage(new StringTextComponent("已经添加到黑名单"), Util.NIL_UUID);
+        return 1;
+    }
+
     private static int delBlacklist(CommandContext<CommandSource> context, CleanType cleanType) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
@@ -164,6 +215,23 @@ public class Command {
         } else {
             player.sendMessage(new StringTextComponent("从黑名单移除失败"), Util.NIL_UUID);
         }
+        return 1;
+    }
+
+    private static int delBlacklist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrException();
+        switch (cleanType) {
+            case ITEMS:
+                Definition.config.getItemsClean().delBlacklist(context.getArgument("name", String.class));
+                break;
+            case ANIMALS:
+                Definition.config.getAnimalClean().delBlacklist(context.getArgument("name", String.class));
+                break;
+            case MONSTERS:
+                Definition.config.getMonsterClean().delBlacklist(context.getArgument("name", String.class));
+        }
+        ConfigHandler.onChange();
+        player.sendMessage(new StringTextComponent("已经从黑名单移除"), Util.NIL_UUID);
         return 1;
     }
 

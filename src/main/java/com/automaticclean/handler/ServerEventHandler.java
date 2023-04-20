@@ -10,12 +10,6 @@ import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 
 
-/**
- * Description:
- * Author: cnlimiter
- * Date: 2022/4/9 14:50
- * Version: 1.0
- */
 @Mod.EventBusSubscriber(modid = Definition.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ServerEventHandler {
     @SubscribeEvent

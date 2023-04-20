@@ -1,10 +1,16 @@
 package com.automaticclean.timer;
 
 import com.automaticclean.Definition;
+import com.automaticclean.entity.CustomAnimalEntity;
 import com.automaticclean.entity.CustomItemEntity;
+import com.automaticclean.entity.CustomMonsterEntity;
 import com.automaticclean.handler.TimerHandler;
+import com.automaticclean.interfaces.CallableWithServer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.server.ServerWorld;
 
@@ -15,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-public class TimerExecute {
+public class TimerExecute implements CallableWithServer {
     public static final TimerExecute INSTANCE = new TimerExecute();
     private Timer timer;
     private TimerTask currentTask;
@@ -60,11 +66,11 @@ public class TimerExecute {
     }
 
     public void startTimerTick() {
-        TimerHandler.beginCountDown();
+        TimerHandler.beginCountDown(this);
     }
 
     public void reminderTimer() {
-        Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getBeforeClean(), Definition.config.getCommon().getReminderBefore());
+        Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getBeforeCleanItem(), Definition.config.getCommon().getReminderBefore());
     }
 
     public void timer(MinecraftServer server) {
@@ -77,14 +83,22 @@ public class TimerExecute {
             }
         }
 
-        Definition.sendMessageToAllPlayers(server, Definition.config.getItemsClean().getCleanComplete(), killItemCount);
+        Definition.sendMessageToAllPlayers(server, Definition.config.getItemsClean().getCleanItemComplete(), killItemCount);
     }
 
     public int cleanItems(ServerWorld world) {
-        return this.cleanItem(world, entity -> entity instanceof ItemEntity, entity -> new CustomItemEntity((ItemEntity) entity).filtrate());
+        return this.cleanEntity(world, entity -> entity instanceof ItemEntity, entity -> new CustomItemEntity((ItemEntity) entity).filtrate());
     }
 
-    private int cleanItem(ServerWorld world, Predicate<Entity> type, Predicate<Entity> additionalPredicate) {
+    public int cleanMonsters(ServerWorld world){
+        return this.cleanEntity(world, entity -> entity instanceof MonsterEntity, entity -> new CustomMonsterEntity((MonsterEntity) entity).filtrate());
+    }
+
+    public int cleanAnimals(ServerWorld world){
+        return this.cleanEntity(world, entity -> entity instanceof AnimalEntity, entity -> new CustomAnimalEntity((AnimalEntity) entity).filtrate());
+    }
+
+    private int cleanEntity(ServerWorld world, Predicate<Entity> type, Predicate<Entity> additionalPredicate) {
         AtomicInteger amount = new AtomicInteger();
 
         StreamSupport.stream(world.getAllEntities().spliterator(), false)
@@ -104,5 +118,10 @@ public class TimerExecute {
                 );
 
         return amount.get();
+    }
+
+    @Override
+    public void callback(MinecraftServer server) {
+        this.timer(server);
     }
 }

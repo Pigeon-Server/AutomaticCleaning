@@ -3,8 +3,9 @@ package com.automaticclean.command;
 import com.automaticclean.Definition;
 import com.automaticclean.handler.ConfigHandler;
 import com.automaticclean.handler.TimerHandler;
+import com.automaticclean.interfaces.CleanType;
 import com.automaticclean.timer.TimerExecute;
-import com.automaticclean.utils.CleanType;
+import com.automaticclean.utils.CleanTypeEnum;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -12,6 +13,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Util;
@@ -25,11 +27,11 @@ public class Command {
                         .requires(context -> context.hasPermission(3))
                         .then(Commands.literal("cleaning")
                                 .then(Commands.literal("items")
-                                        .then(Commands.literal("set")
+                                        .then(Commands.literal("enable")
                                                 .then(Commands.literal("true")
-                                                        .executes(context -> Command.editStatus(context, CleanType.ITEMS, true)))
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getItemsClean(), true)))
                                                 .then(Commands.literal("false")
-                                                        .executes(context -> Command.editStatus(context, CleanType.ITEMS, false))))
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getItemsClean(), false))))
                                         .then(Commands.literal("clean")
                                                 .then(Commands.literal("now")
                                                         .executes(Command::cleanItems))
@@ -38,43 +40,121 @@ public class Command {
                                                                 .executes(context -> Command.cleanItems(context, true)))))
                                         .then(Commands.literal("whitelist")
                                                 .then(Commands.literal("enable")
-                                                        .executes(context -> Command.switchWhitelist(context, CleanType.ITEMS)))
+                                                        .executes(context -> Command.switchWhitelist(context, Definition.config.getItemsClean())))
                                                 .then(Commands.literal("add")
-                                                        .executes(context -> Command.addWhitelist(context, CleanType.ITEMS))
+                                                        .executes(context -> Command.addWhitelist(context, Definition.config.getItemsClean()))
                                                         .then(Commands.argument("name", StringArgumentType.string())
-                                                                .executes(context -> Command.addWhitelist(context, CleanType.ITEMS, true))))
+                                                                .executes(Command::addWhitelist)))
                                                 .then(Commands.literal("del")
-                                                        .executes(context -> Command.delWhitelist(context, CleanType.ITEMS))
+                                                        .executes(context -> Command.delWhitelist(context, Definition.config.getItemsClean()))
                                                         .then(Commands.argument("name", StringArgumentType.string())
-                                                                .executes(context -> Command.delWhitelist(context, CleanType.ITEMS, true)))))
+                                                                .executes(Command::delWhitelist))))
                                         .then(Commands.literal("blacklist")
                                                 .then(Commands.literal("enable")
-                                                        .executes(context -> Command.switchBlacklist(context, CleanType.ITEMS)))
+                                                        .executes(context -> Command.switchBlacklist(context, Definition.config.getItemsClean())))
                                                 .then(Commands.literal("add")
-                                                        .executes(context -> Command.addBlacklist(context, CleanType.ITEMS))
+                                                        .executes(context -> Command.addBlacklist(context, Definition.config.getItemsClean()))
                                                         .then(Commands.argument("name", StringArgumentType.string())
-                                                                .executes(context -> Command.addBlacklist(context, CleanType.ITEMS, true))))
+                                                                .executes(Command::addBlacklist)))
                                                 .then(Commands.literal("del")
-                                                        .executes(context -> Command.delBlacklist(context, CleanType.ITEMS))
+                                                        .executes(context -> Command.delBlacklist(context, Definition.config.getItemsClean()))
                                                         .then(Commands.argument("name", StringArgumentType.string())
-                                                                .executes(context -> Command.delBlacklist(context, CleanType.ITEMS, true))))))
-                                .then(Commands.literal("animals"))
-                                .then(Commands.literal("monsters"))
-                                .then(Commands.literal("setting"))
+                                                                .executes(Command::delBlacklist)))))
+                                .then(Commands.literal("animals")
+                                        .then(Commands.literal("enable")
+                                                .then(Commands.literal("true")
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getAnimalClean(), true)))
+                                                .then(Commands.literal("false")
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getAnimalClean(), false))))
+                                        .then(Commands.literal("clean")
+                                                .then(Commands.literal("now")
+                                                        .executes(Command::cleanAnimals))
+                                                .then(Commands.literal("after")
+                                                        .then(Commands.argument("time", IntegerArgumentType.integer(0, 60))
+                                                                .executes(context -> Command.cleanAnimals(context, true)))))
+                                        .then(Commands.literal("whitelist")
+                                                .then(Commands.literal("enable")
+                                                        .executes(context -> Command.switchWhitelist(context, Definition.config.getAnimalClean())))
+                                                .then(Commands.literal("add")
+                                                        .executes(context -> Command.addWhitelist(context, Definition.config.getAnimalClean())))
+                                                .then(Commands.literal("del")
+                                                        .executes(context -> Command.delWhitelist(context, Definition.config.getAnimalClean()))))
+                                        .then(Commands.literal("blacklist")
+                                                .then(Commands.literal("enable")
+                                                        .executes(context -> Command.switchBlacklist(context, Definition.config.getAnimalClean())))
+                                                .then(Commands.literal("add")
+                                                        .executes(context -> Command.addBlacklist(context, Definition.config.getAnimalClean())))
+                                                .then(Commands.literal("del")
+                                                        .executes(context -> Command.delBlacklist(context, Definition.config.getAnimalClean())))))
+                                .then(Commands.literal("monsters")
+                                        .then(Commands.literal("enable")
+                                                .then(Commands.literal("true")
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getMonsterClean(), true)))
+                                                .then(Commands.literal("false")
+                                                        .executes(context -> Command.editStatus(context, Definition.config.getMonsterClean(), false))))
+                                        .then(Commands.literal("clean")
+                                                .then(Commands.literal("now")
+                                                        .executes(Command::cleanMonsters))
+                                                .then(Commands.literal("after")
+                                                        .then(Commands.argument("time", IntegerArgumentType.integer(0, 60))
+                                                                .executes(context -> Command.cleanMonsters(context, true)))))
+                                        .then(Commands.literal("whitelist")
+                                                .then(Commands.literal("enable")
+                                                        .executes(context -> Command.switchWhitelist(context, Definition.config.getMonsterClean())))
+                                                .then(Commands.literal("add")
+                                                        .executes(context -> Command.addWhitelist(context, Definition.config.getMonsterClean())))
+                                                .then(Commands.literal("del")
+                                                        .executes(context -> Command.delWhitelist(context, Definition.config.getMonsterClean()))))
+                                        .then(Commands.literal("blacklist")
+                                                .then(Commands.literal("enable")
+                                                        .executes(context -> Command.switchBlacklist(context, Definition.config.getMonsterClean())))
+                                                .then(Commands.literal("add")
+                                                        .executes(context -> Command.addBlacklist(context, Definition.config.getMonsterClean())))
+                                                .then(Commands.literal("del")
+                                                        .executes(context -> Command.delBlacklist(context, Definition.config.getMonsterClean())))))
+                                .then(Commands.literal("setting")
+                                        .then(Commands.literal("interval")
+                                                .then(Commands.argument("time", IntegerArgumentType.integer(0))
+                                                        .executes(context -> {
+                                                            Definition.config.getCommon().setInterval(context.getArgument("time", Integer.class));
+                                                            ConfigHandler.onChange();
+                                                            return 1;
+                                                        })))
+                                        .then(Commands.literal("reminderBefore")
+                                                .then(Commands.argument("time", IntegerArgumentType.integer(0))
+                                                        .executes(context -> {
+                                                            Definition.config.getCommon().setReminderBefore(context.getArgument("time", Integer.class));
+                                                            ConfigHandler.onChange();
+                                                            return 1;
+                                                        })))
+                                        .then(Commands.literal("countdown")
+                                                .then(Commands.argument("time", IntegerArgumentType.integer(0))
+                                                        .executes(context -> {
+                                                            Definition.config.getCommon().setCountdown(context.getArgument("time", Integer.class));
+                                                            ConfigHandler.onChange();
+                                                            return 1;
+                                                        }))))
+                                .then(Commands.literal("reload")
+                                        .executes(context -> {
+                                            TimerExecute.INSTANCE.stopTimer();
+                                            ConfigHandler.load();
+                                            TimerExecute.INSTANCE.startTimer();
+                                            PlayerEntity player = context.getSource().getPlayerOrException();
+                                            player.sendMessage(new StringTextComponent("重载完成"), Util.NIL_UUID);
+                                            return 1;
+                                        }))
+                                .then(Commands.literal("clean")
+                                        .executes(context -> {
+                                            TimerExecute.INSTANCE.timer(context.getSource().getServer());
+                                            return 1;
+                                        }))
                         ));
     }
 
-    private static int editStatus(CommandContext<CommandSource> context, CleanType cleanType, boolean status) {
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().setCleanItem(status);
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().setCleanAnimal(status);
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().setCleanMonster(status);
-        }
+    private static int editStatus(CommandContext<CommandSource> context, CleanType cleanType, boolean status) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrException();
+        cleanType.setCleanEnable(status);
+        player.sendMessage(new StringTextComponent(cleanType.getName() + ": " + (status ? "开启" : "关闭")), Util.NIL_UUID);
         ConfigHandler.onChange();
         return 1;
     }
@@ -83,16 +163,7 @@ public class Command {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
         if (itemStack.getItem().getRegistryName() != null) {
-            switch (cleanType) {
-                case ITEMS:
-                    Definition.config.getItemsClean().addWhitelist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case ANIMALS:
-                    Definition.config.getAnimalClean().addWhitelist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case MONSTERS:
-                    Definition.config.getMonsterClean().addWhitelist(itemStack.getItem().getRegistryName().toString());
-            }
+            cleanType.addWhitelist(itemStack.getItem().getRegistryName().toString());
             ConfigHandler.onChange();
             player.sendMessage(new StringTextComponent("已经添加到白名单"), Util.NIL_UUID);
         } else {
@@ -101,18 +172,9 @@ public class Command {
         return 1;
     }
 
-    private static int addWhitelist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+    private static int addWhitelist(CommandContext<CommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().addWhitelist(context.getArgument("name", String.class));
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().addWhitelist(context.getArgument("name", String.class));
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().addWhitelist(context.getArgument("name", String.class));
-        }
+        Definition.config.getItemsClean().addWhitelist(context.getArgument("name", String.class));
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("已经添加到白名单"), Util.NIL_UUID);
         return 1;
@@ -122,16 +184,7 @@ public class Command {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
         if (itemStack.getItem().getRegistryName() != null) {
-            switch (cleanType) {
-                case ITEMS:
-                    Definition.config.getItemsClean().delWhitelist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case ANIMALS:
-                    Definition.config.getAnimalClean().delWhitelist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case MONSTERS:
-                    Definition.config.getMonsterClean().delWhitelist(itemStack.getItem().getRegistryName().toString());
-            }
+            cleanType.delWhitelist(itemStack.getItem().getRegistryName().toString());
             ConfigHandler.onChange();
             player.sendMessage(new StringTextComponent("已经从白名单移除"), Util.NIL_UUID);
         } else {
@@ -140,18 +193,9 @@ public class Command {
         return 1;
     }
 
-    private static int delWhitelist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+    private static int delWhitelist(CommandContext<CommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().delWhitelist(context.getArgument("name", String.class));
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().delWhitelist(context.getArgument("name", String.class));
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().delWhitelist(context.getArgument("name", String.class));
-        }
+        Definition.config.getItemsClean().delWhitelist(context.getArgument("name", String.class));
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("已经从白名单移除"), Util.NIL_UUID);
         return 1;
@@ -161,16 +205,7 @@ public class Command {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
         if (itemStack.getItem().getRegistryName() != null) {
-            switch (cleanType) {
-                case ITEMS:
-                    Definition.config.getItemsClean().addBlacklist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case ANIMALS:
-                    Definition.config.getAnimalClean().addBlacklist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case MONSTERS:
-                    Definition.config.getMonsterClean().addBlacklist(itemStack.getItem().getRegistryName().toString());
-            }
+            cleanType.addBlacklist(itemStack.getItem().getRegistryName().toString());
             ConfigHandler.onChange();
             player.sendMessage(new StringTextComponent("已经添加到黑名单"), Util.NIL_UUID);
         } else {
@@ -179,18 +214,9 @@ public class Command {
         return 1;
     }
 
-    private static int addBlacklist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+    private static int addBlacklist(CommandContext<CommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().addBlacklist(context.getArgument("name", String.class));
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().addBlacklist(context.getArgument("name", String.class));
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().addBlacklist(context.getArgument("name", String.class));
-        }
+        Definition.config.getItemsClean().addBlacklist(context.getArgument("name", String.class));
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("已经添加到黑名单"), Util.NIL_UUID);
         return 1;
@@ -200,16 +226,7 @@ public class Command {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
         ItemStack itemStack = player.getMainHandItem();
         if (itemStack.getItem().getRegistryName() != null) {
-            switch (cleanType) {
-                case ITEMS:
-                    Definition.config.getItemsClean().delBlacklist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case ANIMALS:
-                    Definition.config.getAnimalClean().delBlacklist(itemStack.getItem().getRegistryName().toString());
-                    break;
-                case MONSTERS:
-                    Definition.config.getMonsterClean().delBlacklist(itemStack.getItem().getRegistryName().toString());
-            }
+            cleanType.delBlacklist(itemStack.getItem().getRegistryName().toString());
             ConfigHandler.onChange();
             player.sendMessage(new StringTextComponent("已经从黑名单移除"), Util.NIL_UUID);
         } else {
@@ -218,70 +235,86 @@ public class Command {
         return 1;
     }
 
-    private static int delBlacklist(CommandContext<CommandSource> context, CleanType cleanType, boolean ignored_) throws CommandSyntaxException {
+    private static int delBlacklist(CommandContext<CommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().delBlacklist(context.getArgument("name", String.class));
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().delBlacklist(context.getArgument("name", String.class));
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().delBlacklist(context.getArgument("name", String.class));
-        }
+        Definition.config.getItemsClean().delBlacklist(context.getArgument("name", String.class));
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("已经从黑名单移除"), Util.NIL_UUID);
         return 1;
     }
 
-    private static int cleanAll(CommandContext<CommandSource> context) {
-        Command.cleanItems(context);
-        Command.cleanAnimals(context);
-        Command.cleanMonsters(context);
-        return 1;
-    }
-
     private static int cleanItems(CommandContext<CommandSource> context) {
-        ServerWorld world = context.getSource().getLevel();
-        Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getCleanItemComplete(), TimerExecute.INSTANCE.cleanItems(world));
+        Command.clean(context, CleanTypeEnum.ITEMS);
         return 1;
     }
 
     private static int cleanItems(CommandContext<CommandSource> context, boolean ignored_) throws CommandSyntaxException {
-        ServerWorld world = context.getSource().getLevel();
         if (TimerHandler.getCounter() != -1) {
-            context.getSource().getPlayerOrException().sendMessage(new StringTextComponent("即将进行定时清理，请稍后"), Util.NIL_UUID);
+            context.getSource().getPlayerOrException().sendMessage(new StringTextComponent("即将进行清理，请稍后"), Util.NIL_UUID);
             return 1;
         }
-        TimerHandler.beginCountDown(server -> Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getCleanItemComplete(), TimerExecute.INSTANCE.cleanItems(world)), context.getArgument("time", Integer.class));
+        TimerHandler.beginCountDown(server -> Command.clean(context, CleanTypeEnum.ITEMS), context.getArgument("time", Integer.class), Definition.config.getItemsClean());
         return 1;
     }
 
     private static int cleanAnimals(CommandContext<CommandSource> context) {
+        Command.clean(context, CleanTypeEnum.ANIMALS);
+        return 1;
+    }
+
+    private static int cleanAnimals(CommandContext<CommandSource> context, boolean ignored_) throws CommandSyntaxException {
         ServerWorld world = context.getSource().getLevel();
-        Definition.sendMessageToAllPlayers(Definition.config.getAnimalClean().getCleanAnimalsComplete(), TimerExecute.INSTANCE.cleanAnimals(world));
+        if (TimerHandler.getCounter() != -1) {
+            context.getSource().getPlayerOrException().sendMessage(new StringTextComponent("即将进行清理，请稍后"), Util.NIL_UUID);
+            return 1;
+        }
+        TimerHandler.beginCountDown(server -> Command.clean(context, CleanTypeEnum.ANIMALS), context.getArgument("time", Integer.class), Definition.config.getAnimalClean());
         return 1;
     }
 
     private static int cleanMonsters(CommandContext<CommandSource> context) {
-        ServerWorld world = context.getSource().getLevel();
-        Definition.sendMessageToAllPlayers(Definition.config.getMonsterClean().getCleanMonsterComplete(), TimerExecute.INSTANCE.cleanMonsters(world));
+        Command.clean(context, CleanTypeEnum.MONSTERS);
         return 1;
+    }
+
+    private static int cleanMonsters(CommandContext<CommandSource> context, boolean ignored_) throws CommandSyntaxException {
+        ServerWorld world = context.getSource().getLevel();
+        if (TimerHandler.getCounter() != -1) {
+            context.getSource().getPlayerOrException().sendMessage(new StringTextComponent("即将进行清理，请稍后"), Util.NIL_UUID);
+            return 1;
+        }
+        TimerHandler.beginCountDown(server -> Command.clean(context, CleanTypeEnum.MONSTERS), context.getArgument("time", Integer.class), Definition.config.getMonsterClean());
+        return 1;
+    }
+
+    private static void clean(CommandContext<CommandSource> context, CleanTypeEnum type) {
+        int killCount = 0;
+        Iterable<ServerWorld> worlds = context.getSource().getServer().getAllLevels();
+        switch (type) {
+            case ITEMS:
+                for (ServerWorld world : worlds) {
+                    killCount += TimerExecute.INSTANCE.cleanItems(world);
+                }
+                Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getCleanComplete(), killCount);
+                break;
+            case MONSTERS:
+                for (ServerWorld world : worlds) {
+                    killCount += TimerExecute.INSTANCE.cleanMonsters(world);
+                }
+                Definition.sendMessageToAllPlayers(Definition.config.getMonsterClean().getCleanComplete(), killCount);
+                break;
+            case ANIMALS:
+                for (ServerWorld world : worlds) {
+                    killCount += TimerExecute.INSTANCE.cleanAnimals(world);
+                }
+                Definition.sendMessageToAllPlayers(Definition.config.getAnimalClean().getCleanComplete(), killCount);
+                break;
+        }
     }
 
     private static int switchWhitelist(CommandContext<CommandSource> context, CleanType cleanType) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().setWhitelistMode(true);
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().setWhitelistMode(true);
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().setWhitelistMode(true);
-        }
+        cleanType.setWhitelistMode(true);
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("当前过滤模式为：白名单"), Util.NIL_UUID);
         return 1;
@@ -289,16 +322,7 @@ public class Command {
 
     private static int switchBlacklist(CommandContext<CommandSource> context, CleanType cleanType) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrException();
-        switch (cleanType) {
-            case ITEMS:
-                Definition.config.getItemsClean().setWhitelistMode(false);
-                break;
-            case ANIMALS:
-                Definition.config.getAnimalClean().setWhitelistMode(false);
-                break;
-            case MONSTERS:
-                Definition.config.getMonsterClean().setWhitelistMode(false);
-        }
+        cleanType.setWhitelistMode(false);
         ConfigHandler.onChange();
         player.sendMessage(new StringTextComponent("当前过滤模式为：黑名单"), Util.NIL_UUID);
         return 1;

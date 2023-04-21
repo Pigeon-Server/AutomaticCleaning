@@ -15,12 +15,12 @@ public class CustomAnimalEntity {
 
     public boolean filtrate() {
         if (Definition.config.getAnimalClean().isWhitelistMode()) {
-            for (String s : Definition.config.getAnimalClean().getAnimalEntitiesWhitelist()) {
+            for (String s : Definition.config.getAnimalClean().getWhitelist()) {
                 return WhitelistAndBlacklist.nameMatch(s, this.registryName);
             }
             return false;
         } else {
-            for (String s : Definition.config.getAnimalClean().getAnimalEntitiesBlacklist()) {
+            for (String s : Definition.config.getAnimalClean().getBlacklist()) {
                 return !WhitelistAndBlacklist.nameMatch(s, this.registryName);
             }
             return true;

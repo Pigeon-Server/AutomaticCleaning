@@ -7,7 +7,6 @@ import com.automaticclean.entity.CustomMonsterEntity;
 import com.automaticclean.handler.TimerHandler;
 import com.automaticclean.interfaces.CallableWithServer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -70,31 +69,48 @@ public class TimerExecute implements CallableWithServer {
     }
 
     public void reminderTimer() {
-        Definition.sendMessageToAllPlayers(Definition.config.getItemsClean().getBeforeCleanItem(), Definition.config.getCommon().getReminderBefore());
+        Definition.sendMessageToAllPlayers(Definition.config.getCommon().getBeforeClean(), Definition.config.getCommon().getReminderBefore());
     }
 
     public void timer(MinecraftServer server) {
         int killItemCount = 0;
+        int killMonsterCount = 0;
+        int killAnimalCount = 0;
         Iterable<ServerWorld> worlds = server.getAllLevels();
 
         for (ServerWorld world : worlds) {
             synchronized (world) {
-                killItemCount += this.cleanItems(world);
+                if (Definition.config.getItemsClean().isCleanEnable()) {
+                    killItemCount += this.cleanItems(world);
+                }
+                if (Definition.config.getMonsterClean().isCleanEnable()) {
+                    killMonsterCount += this.cleanMonsters(world);
+                }
+                if (Definition.config.getAnimalClean().isCleanEnable()) {
+                    killAnimalCount += this.cleanAnimals(world);
+                }
             }
         }
-
-        Definition.sendMessageToAllPlayers(server, Definition.config.getItemsClean().getCleanItemComplete(), killItemCount);
+        if (Definition.config.getItemsClean().isCleanEnable()) {
+            Definition.sendMessageToAllPlayers(server, Definition.config.getItemsClean().getCleanComplete(), killItemCount);
+        }
+        if (Definition.config.getMonsterClean().isCleanEnable()) {
+            Definition.sendMessageToAllPlayers(server, Definition.config.getMonsterClean().getCleanComplete(), killMonsterCount);
+        }
+        if (Definition.config.getAnimalClean().isCleanEnable()) {
+            Definition.sendMessageToAllPlayers(server, Definition.config.getAnimalClean().getCleanComplete(), killAnimalCount);
+        }
     }
 
     public int cleanItems(ServerWorld world) {
         return this.cleanEntity(world, entity -> entity instanceof ItemEntity, entity -> new CustomItemEntity((ItemEntity) entity).filtrate());
     }
 
-    public int cleanMonsters(ServerWorld world){
+    public int cleanMonsters(ServerWorld world) {
         return this.cleanEntity(world, entity -> entity instanceof MonsterEntity, entity -> new CustomMonsterEntity((MonsterEntity) entity).filtrate());
     }
 
-    public int cleanAnimals(ServerWorld world){
+    public int cleanAnimals(ServerWorld world) {
         return this.cleanEntity(world, entity -> entity instanceof AnimalEntity, entity -> new CustomAnimalEntity((AnimalEntity) entity).filtrate());
     }
 

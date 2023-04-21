@@ -15,12 +15,12 @@ public class CustomMonsterEntity {
 
     public boolean filtrate() {
         if (Definition.config.getMonsterClean().isWhitelistMode()) {
-            for (String s : Definition.config.getMonsterClean().getMonsterEntitiesWhitelist()) {
+            for (String s : Definition.config.getMonsterClean().getWhitelist()) {
                 return WhitelistAndBlacklist.nameMatch(s, this.registryName);
             }
             return false;
         } else {
-            for (String s : Definition.config.getMonsterClean().getMonsterEntitiesBlacklist()) {
+            for (String s : Definition.config.getMonsterClean().getBlacklist()) {
                 return !WhitelistAndBlacklist.nameMatch(s, this.registryName);
             }
             return true;

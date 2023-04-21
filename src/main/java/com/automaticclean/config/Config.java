@@ -1,5 +1,6 @@
 package com.automaticclean.config;
 
+import com.automaticclean.interfaces.CleanType;
 import com.google.common.collect.Sets;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -39,6 +40,12 @@ public class Config {
         private int reminderBefore = 15;
         @Expose
         private int countdown = 5;
+        @Expose
+        private String beforeClean = "<气人姬> 注意：将在 %d 秒后清理实体";
+
+        public String getBeforeClean() {
+            return beforeClean;
+        }
 
         public int getCountdown() {
             return countdown;
@@ -65,190 +72,250 @@ public class Config {
         }
     }
 
-    public static class ItemClean {
+    public static class ItemClean implements CleanType {
         @Expose
-        private boolean cleanItem = true;
+        private String name = "掉落物清理";
+        @Expose
+        private boolean cleanEnable = true;
         @Expose
         private boolean whitelistMode = false;
         @Expose
-        private Set<String> itemEntitiesWhitelist = Sets.newHashSet("minecraft:diamond", "minecraft:emerald");
+        private Set<String> whitelist = Sets.newHashSet("minecraft:diamond", "minecraft:emerald");
         @Expose
-        private Set<String> itemEntitiesBlacklist = Sets.newHashSet();
+        private Set<String> blacklist = Sets.newHashSet();
         @Expose
-        private String beforeCleanItem = "<气人姬> 注意：将在 %d 秒后清理掉落物";
+        private String beforeClean = "<气人姬> 注意：将在 %d 秒后清理掉落物";
         @Expose
-        private String cleanItemComplete = "<气人姬> 本次清理了 %d 个掉落物";
+        private String cleanComplete = "<气人姬> 本次清理了 %d 个掉落物";
 
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
         public boolean isWhitelistMode() {
             return whitelistMode;
         }
 
+        @Override
         public void setWhitelistMode(boolean whitelistMode) {
             this.whitelistMode = whitelistMode;
         }
 
-        public Set<String> getItemEntitiesWhitelist() {
-            return itemEntitiesWhitelist;
+        @Override
+        public Set<String> getWhitelist() {
+            return whitelist;
         }
 
-        public Set<String> getItemEntitiesBlacklist() {
-            return itemEntitiesBlacklist;
+        @Override
+        public Set<String> getBlacklist() {
+            return blacklist;
         }
 
-        public String getBeforeCleanItem() {
-            return beforeCleanItem;
+        @Override
+        public String getBeforeClean() {
+            return beforeClean;
         }
 
-        public String getCleanItemComplete() {
-            return cleanItemComplete;
+        @Override
+        public String getCleanComplete() {
+            return cleanComplete;
         }
 
+        @Override
         public void addWhitelist(String name) {
-            this.itemEntitiesWhitelist.add(name);
+            this.whitelist.add(name);
         }
 
+        @Override
         public void delWhitelist(String name) {
-            this.itemEntitiesWhitelist.remove(name);
+            this.whitelist.remove(name);
         }
 
+        @Override
         public void addBlacklist(String name) {
-            this.itemEntitiesBlacklist.add(name);
+            this.blacklist.add(name);
         }
 
+        @Override
         public void delBlacklist(String name) {
-            this.itemEntitiesBlacklist.remove(name);
+            this.blacklist.remove(name);
         }
 
-        public boolean isCleanItem() {
-            return cleanItem;
+        @Override
+        public boolean isCleanEnable() {
+            return cleanEnable;
         }
 
-        public void setCleanItem(boolean cleanItem) {
-            this.cleanItem = cleanItem;
+        @Override
+        public void setCleanEnable(boolean cleanEnable) {
+            this.cleanEnable = cleanEnable;
         }
     }
 
-    public static class MonsterClean {
+    public static class MonsterClean implements CleanType {
         @Expose
-        private boolean cleanMonster = false;
+        private String name = "怪物清理";
+        @Expose
+        private boolean cleanEnable = false;
         @Expose
         private boolean whitelistMode = false;
         @Expose
-        private Set<String> monsterEntitiesWhitelist = Sets.newHashSet("minecraft:diamond", "minecraft:emerald");
+        private Set<String> whitelist = Sets.newHashSet();
         @Expose
-        private Set<String> monsterEntitiesBlacklist = Sets.newHashSet();
+        private Set<String> blacklist = Sets.newHashSet();
         @Expose
-        private String beforeCleanMonster = "<气人姬> 注意：将在 %d 秒后清理敌对生物";
+        private String beforeClean = "<气人姬> 注意：将在 %d 秒后清理敌对生物";
         @Expose
-        private String cleanMonsterComplete = "<气人姬> 本次清理了 %d 个敌对生物";
+        private String cleanComplete = "<气人姬> 本次清理了 %d 个敌对生物";
 
-        public Set<String> getMonsterEntitiesWhitelist() {
-            return monsterEntitiesWhitelist;
+        @Override
+        public String getName() {
+            return name;
         }
 
-        public Set<String> getMonsterEntitiesBlacklist() {
-            return monsterEntitiesBlacklist;
+        @Override
+        public Set<String> getWhitelist() {
+            return whitelist;
         }
 
+        @Override
+        public Set<String> getBlacklist() {
+            return blacklist;
+        }
+
+        @Override
         public boolean isWhitelistMode() {
             return whitelistMode;
         }
 
+        @Override
         public void setWhitelistMode(boolean whitelistMode) {
             this.whitelistMode = whitelistMode;
         }
 
+        @Override
         public void addWhitelist(String name) {
-            this.monsterEntitiesWhitelist.add(name);
+            this.whitelist.add(name);
         }
 
+        @Override
         public void delWhitelist(String name) {
-            this.monsterEntitiesWhitelist.remove(name);
+            this.whitelist.remove(name);
         }
 
+        @Override
         public void addBlacklist(String name) {
-            this.monsterEntitiesBlacklist.add(name);
+            this.blacklist.add(name);
         }
 
+        @Override
         public void delBlacklist(String name) {
-            this.monsterEntitiesBlacklist.remove(name);
-        }
-        public boolean isCleanMonster() {
-            return cleanMonster;
+            this.blacklist.remove(name);
         }
 
-        public void setCleanMonster(boolean cleanMonster) {
-            this.cleanMonster = cleanMonster;
+        @Override
+        public boolean isCleanEnable() {
+            return cleanEnable;
         }
 
-        public String getBeforeCleanMonster() {
-            return beforeCleanMonster;
+        @Override
+        public void setCleanEnable(boolean cleanEnable) {
+            this.cleanEnable = cleanEnable;
         }
 
-        public String getCleanMonsterComplete() {
-            return cleanMonsterComplete;
+        @Override
+        public String getBeforeClean() {
+            return beforeClean;
         }
+
+        @Override
+        public String getCleanComplete() {
+            return cleanComplete;
+        }
+
     }
 
-    public static class AnimalClean {
+    public static class AnimalClean implements CleanType {
         @Expose
-        private boolean cleanAnimal = false;
+        private String name = "动物清理";
+        @Expose
+        private boolean cleanEnable = false;
         @Expose
         private boolean whitelistMode = false;
         @Expose
-        private Set<String> animalEntitiesWhitelist = Sets.newHashSet("minecraft:diamond", "minecraft:emerald");
+        private Set<String> whitelist = Sets.newHashSet();
         @Expose
-        private Set<String> animalEntitiesBlacklist = Sets.newHashSet();
+        private Set<String> blacklist = Sets.newHashSet();
         @Expose
-        private String beforeCleanAnimals = "<气人姬> 注意：将在 %d 秒后清理动物";
+        private String beforeClean = "<气人姬> 注意：将在 %d 秒后清理动物";
         @Expose
-        private String cleanAnimalsComplete = "<气人姬> 本次清理了 %d 个动物";
+        private String cleanComplete = "<气人姬> 本次清理了 %d 个动物";
 
-        public Set<String> getAnimalEntitiesWhitelist() {
-            return animalEntitiesWhitelist;
+        @Override
+        public String getName() {
+            return name;
         }
 
-        public Set<String> getAnimalEntitiesBlacklist() {
-            return animalEntitiesBlacklist;
+        @Override
+        public Set<String> getWhitelist() {
+            return whitelist;
         }
 
+        @Override
+        public Set<String> getBlacklist() {
+            return blacklist;
+        }
+
+        @Override
         public boolean isWhitelistMode() {
             return whitelistMode;
         }
 
+        @Override
         public void setWhitelistMode(boolean whitelistMode) {
             this.whitelistMode = whitelistMode;
         }
 
+        @Override
         public void addWhitelist(String name) {
-            this.animalEntitiesWhitelist.add(name);
+            this.whitelist.add(name);
         }
 
+        @Override
         public void delWhitelist(String name) {
-            this.animalEntitiesWhitelist.remove(name);
+            this.whitelist.remove(name);
         }
 
+        @Override
         public void addBlacklist(String name) {
-            this.animalEntitiesBlacklist.add(name);
+            this.blacklist.add(name);
         }
 
+        @Override
         public void delBlacklist(String name) {
-            this.animalEntitiesBlacklist.remove(name);
-        }
-        public boolean isCleanAnimal() {
-            return cleanAnimal;
+            this.blacklist.remove(name);
         }
 
-        public void setCleanAnimal(boolean cleanAnimal) {
-            this.cleanAnimal = cleanAnimal;
+        @Override
+        public boolean isCleanEnable() {
+            return cleanEnable;
         }
 
-        public String getBeforeCleanAnimals() {
-            return beforeCleanAnimals;
+        @Override
+        public void setCleanEnable(boolean cleanEnable) {
+            this.cleanEnable = cleanEnable;
         }
 
-        public String getCleanAnimalsComplete() {
-            return cleanAnimalsComplete;
+        @Override
+        public String getBeforeClean() {
+            return beforeClean;
+        }
+
+        @Override
+        public String getCleanComplete() {
+            return cleanComplete;
         }
     }
 }

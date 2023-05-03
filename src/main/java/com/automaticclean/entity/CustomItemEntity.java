@@ -11,7 +11,6 @@ public class CustomItemEntity {
 
     public CustomItemEntity(ItemEntity entity) {
         this.registryName = Registry.ITEM.getKey(entity.getItem().getItem());
-        Definition.LOGGER.info(this.registryName);
     }
 
     public boolean filtrate() {
